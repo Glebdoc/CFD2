@@ -11,25 +11,26 @@ from scipy.sparse import linalg as splinalg
 import scipy.sparse as sparse
 import matplotlib.pyplot as plt
 import numpy as np
+import incidence as inc
 
 #  00D#MMXXI#
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 
+#tol = 
 one = int(1)
 mone = int(-1)
 
 L = float(1.0)
 Re = float(1000)    # Reynolds number 
-N = int(64)  		# mesh cells in x- and y-direction
+N = int(3)  		# mesh cells in x- and y-direction
 
-u = np.zeros([2*N*(N+1),1], dtype = np.float)
-p = np.zeros([N*N+4*N,1], dtype = np.float)
-tx = np.zeros([N+1,1], dtype = np.float)     # grid points on primal grid
-x = np.zeros([N+2,1], dtype = np.float)      # grid points on dual grid
-th = np.zeros([N], dtype = np.float)       # mesh width primal grid
-h = np.zeros([N+1], dtype = np.float)      # mesh width dual grid 
+u = np.zeros([2*N*(N+1),1])
+p = np.zeros([N*N+4*N,1])
+tx = np.zeros([N+1,1])     # grid points on primal grid
+x = np.zeros([N+2,1])      # grid points on dual grid
+th = np.zeros([N])       # mesh width primal grid
+h = np.zeros([N+1])      # mesh width dual grid 
 
 #Generation of a non-uniform grid
 x[0] = 0
@@ -72,23 +73,42 @@ V_wall_right = 0
 # in the assignment.
 # Make sure to sue sparse matrices to avoid memory problems
 
+tE21, tE21_norm = inc.computetE21(N)
 
-#  Insert the normal boundary conditions and split of the vector u_norm
+# Setup u_norm
+LB = U_wall_left*np.ones(N+1) * h 
+RB = U_wall_right*np.ones(N+1) * h
+TB = V_wall_top*np.ones(N+1) * h
+BB = V_wall_bot*np.ones(N+1) * h
+u_norm = np.concatenate((LB, RB, BB, TB), axis=0)
+
+
+# Insert the normal boundary conditions and split of the vector u_norm
+
+# Vector of fluxes is just zero...
 
 
 # Set up the outer-oriented incidence matrix tE10
- # Done
+# Done
 
 #  Set up the sparse, inner-oriented  incidence matrix E10
+E10 = - tE21.transpose()
 #   DONE
 
 #  Set up the (extended) sparse, inner-oriented incidence matrix E21
+E21, E21_norm = inc.compute_dual_E21(N)
 #   DONE
+
+tE10 = -E21.transpose()
 
 
 #  Split off the prescribed tangential velocity and store this in 
 #  the vector u_pres
-
+LB = V_wall_left*np.ones(N+1) * h 
+RB = V_wall_right*np.ones(N+1) * h
+TB = U_wall_top*np.ones(N+1) * h
+BB = U_wall_bot*np.ones(N+1) * h
+u_presc = np.concatenate((LB, RB, BB, TB), axis=0)
 
 #  Set up the Hodge matrices Ht11 and H1t1
  # TODO

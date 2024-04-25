@@ -71,9 +71,9 @@ def computetE21(N):
     UB = np.arange(nEdges - N, nEdges)
 
     columns_to_remove = np.concatenate((LB, RB, BB, UB))
-    columns_to_remove = np.sort(columns_to_remove)
-
-    return move(E21, columns_to_remove, nVolumes)
+    #columns_to_remove = np.sort(columns_to_remove)
+    matrix, matrix_extra = move(E21, columns_to_remove, nVolumes)
+    return matrix, matrix_extra
 
 
 
@@ -99,23 +99,25 @@ def compute_dual_E21(N):
     LB = int(nEdges/2) + Ni*(N+2) + N+1
 
     columns_to_remove = np.concatenate((LB, RB, BB, UB))
-    columns_to_remove = np.sort(columns_to_remove)
+    #columns_to_remove = np.sort(columns_to_remove)
 
-    return move(E21, columns_to_remove, nSurfaces)
+    matrix, matrix_extra = move(E21, columns_to_remove, nSurfaces)
+    return matrix, matrix_extra
 
-tE21, tE21_extra = computetE21(N) 
-print(tE21.shape)
-E21, E21_extra = compute_dual_E21(N)
-print(E21.shape)
 
-fig, axs = plt.subplots(1, 2)
+# tE21, tE21_extra = computetE21(N) 
+# print(tE21.shape)
+# E21, E21_extra = compute_dual_E21(N)
+# print(E21.shape)
 
-axs[0].imshow(E21.todense(), cmap='viridis', interpolation='nearest')
-axs[0].set_title('Visualization of Sparse Matrix (a)')
-axs[0].axis('off')
+# fig, axs = plt.subplots(1, 2)
 
-axs[1].imshow(E21_extra.todense(), cmap='viridis', interpolation='nearest')
-axs[1].set_title('Visualization of Sparse Matrix (b)')
-axs[1].axis('off')
+# axs[0].imshow(E21.todense(), cmap='viridis', interpolation='nearest')
+# axs[0].set_title('Visualization of Sparse Matrix (a)')
+# axs[0].axis('off')
 
-plt.show()
+# axs[1].imshow(E21_extra.todense(), cmap='viridis', interpolation='nearest')
+# axs[1].set_title('Visualization of Sparse Matrix (b)')
+# axs[1].axis('off')
+
+# plt.show()
