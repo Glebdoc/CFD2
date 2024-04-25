@@ -12,12 +12,13 @@ import scipy.sparse as sparse
 import matplotlib.pyplot as plt
 import numpy as np
 import incidence as inc
+import hodge as hod
 
 #  00D#MMXXI#
 
 # Determine a proper value for the tol which determines when the program terminates
 
-#tol = 
+tol = 10e-3
 one = int(1)
 mone = int(-1)
 
@@ -108,19 +109,22 @@ LB = V_wall_left*np.ones(N+1) * h
 RB = V_wall_right*np.ones(N+1) * h
 TB = U_wall_top*np.ones(N+1) * h
 BB = U_wall_bot*np.ones(N+1) * h
-u_presc = np.concatenate((LB, RB, BB, TB), axis=0)
+u_pres = np.concatenate((LB, RB, BB, TB), axis=0)
 
 #  Set up the Hodge matrices Ht11 and H1t1
- # TODO
+H1t1 = hod.get_H1t1(th, h, N)
+Ht11 = splinalg.inv(H1t1)
 
 #  Set up the Hodge matrix Ht02
- # TODO
+Ht02 = hod.get_Ht02(th, N)
 
 A = tE21@Ht11@E10
 
 n = A.shape[0]
 LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
 
+
+print(Ht02.shape)
 u_pres_vort = Ht02@u_pres
 temp = H1t1@tE10@Ht02@u_pres 
 
