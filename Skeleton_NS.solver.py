@@ -14,7 +14,7 @@ import numpy as np
 
 #  00D#MMXXI#
 
-Determine a proper value for the tol which determines when the program terminates
+# Determine a proper value for the tol which determines when the program terminates
 
 tol = 
 one = int(1)
@@ -77,12 +77,13 @@ V_wall_right = 0
 
 
 # Set up the outer-oriented incidence matrix tE10
-
+ # Done
 
 #  Set up the sparse, inner-oriented  incidence matrix E10
-
+#   DONE
 
 #  Set up the (extended) sparse, inner-oriented incidence matrix E21
+#   DONE
 
 
 #  Split off the prescribed tangential velocity and store this in 
@@ -90,10 +91,10 @@ V_wall_right = 0
 
 
 #  Set up the Hodge matrices Ht11 and H1t1
-
+ # TODO
 
 #  Set up the Hodge matrix Ht02
-
+ # TODO
 
 A = tE21@Ht11@E10
 
