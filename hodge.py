@@ -15,7 +15,7 @@ mone = -1
 
 L = float(1.0)
 Re = float(1000)    # Reynolds number 
-N = 11  		# mesh cells in x- and y-direction
+N = 10		# mesh cells in x- and y-direction
 
 u = np.zeros((2*N*(N+1),1), dtype = np.float64)
 p = np.zeros((N*N+4*N,1), dtype = np.float64)
@@ -50,9 +50,7 @@ X_h, Y_h = np.meshgrid(coord_stack_h,coord_stack_h)
 
 X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th)
 
-# print(X_th.shape)
-
-
+print(h)
 
 cell_As = np.zeros(N*N)
 
@@ -64,16 +62,29 @@ for j in th:
         c+=1
 
 
-H0t2 = sparse.diags(cell_As)
+H0t2 = sparse.diags(cell_As,format='csc')
 Ht20 = splinalg.inv(H0t2)
 
-plt.pcolormesh(X_th, Y_th,cell_As.reshape(N, N), edgecolors='k', linewidths=0.2)
+h_e_mat = np.tile(np.tile(h,N),2)
+th_e_mat = np.tile(np.repeat(th,N+1),2)
+
+e_ratio = h_e_mat/th_e_mat
+
+H1t1 = sparse.diags(e_ratio,format='csc')
+
+# plt.pcolormesh(X_th, Y_th,cell_As.reshape(N, N), edgecolors='k', linewidths=0.2)
 
 # plt.pcolormesh(X_h, Y_h,C_h, edgecolors='k', linewidths=2, cmap = 'binary')
 
 # plt.legend()
-plt.show()
 
-plt.imshow(H0t2.todense())
+
+# plt.show()
+
+# plt.imshow(H0t2.todense())
+# plt.colorbar()
+# plt.show()
+
+plt.imshow(H1t1.todense())
 plt.colorbar()
 plt.show()
