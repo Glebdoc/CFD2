@@ -33,7 +33,7 @@ def main():
     import matplotlib.pyplot as plt
 
     L = float(1.0)
-    N = 10		# mesh cells in x- and y-direction
+    N = 5		# mesh cells in x- and y-direction
 
     tx = np.zeros((N+1,1), dtype = np.float64)     # grid points on primal grid
     x = np.zeros((N+2,1), dtype = np.float64)      # grid points on dual grid

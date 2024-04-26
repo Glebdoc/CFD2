@@ -18,13 +18,13 @@ import hodge as hod
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 10e-3
-one = int(1)
-mone = int(-1)
+tol = 1e-5
+one = 1
+mone = -1
 
-L = float(1.0)
+L = 1.0
 Re = float(1000)    # Reynolds number 
-N = int(3)  		# mesh cells in x- and y-direction
+N = 10  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -109,14 +109,14 @@ LB = V_wall_left*np.ones(N+1) * h
 RB = V_wall_right*np.ones(N+1) * h
 TB = U_wall_top*np.ones(N+1) * h
 BB = U_wall_bot*np.ones(N+1) * h
-u_pres = np.concatenate((LB, RB, BB, TB), axis=0)
+u_pres = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
 
 #  Set up the Hodge matrices Ht11 and H1t1
 H1t1 = hod.get_H1t1(th, h, N)
 Ht11 = splinalg.inv(H1t1)
 
 #  Set up the Hodge matrix Ht02
-Ht02 = hod.get_Ht02(th, N)
+Ht02, _ = hod.get_Ht02(h, N)
 
 A = tE21@Ht11@E10
 
@@ -124,7 +124,7 @@ n = A.shape[0]
 LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
 
 
-print(Ht02.shape)
+# print(Ht02.shape)
 u_pres_vort = Ht02@u_pres
 temp = H1t1@tE10@Ht02@u_pres 
 
@@ -137,10 +137,13 @@ ux_xi = np.zeros([(N+1),(N+1)], dtype = float)
 uy_xi = np.zeros([(N+1),(N+1)], dtype = float)
 convective = np.zeros([2*N*(N+1),1], dtype = float)
 
+diff = 1
+step = 0
+
 while (diff>tol):
     
     xi = Ht02@E21@u + u_pres_vort
-    
+
     ux_xi[:, 0] = U_wall_bot*xi[:(N+1),0]
     uy_xi[:, 0] = V_wall_left*xi[::(N+1),0]
 
@@ -154,7 +157,7 @@ while (diff>tol):
     convective[N*(N+1):2*N*(N+1)] = np.reshape((ux_xi[:-1]+ux_xi[1:])*h/2, ((N*(N+1), 1)), order='f')
             
     # Set up the right hand side for the equation for the pressure
-            
+    
     rhs_Pois = DIV@( u/dt - convective - VLaplace@u/Re - u_pres/Re) + u_norm/dt
     
     # Solve for the pressure
@@ -169,20 +172,20 @@ while (diff>tol):
     
     u = u - dt*(convective + E10@p + (VLaplace@u)/Re + u_pres/Re)
     
-    # Every other 1000 iterations check whether you approach steady state and 
+    # Every other 1000 iations check whether you approach steady state and 
     # check whether you satsify conservation of mass. The largest rate at whci 
     # mass is created ot destroyed is denoted my 'maxdiv'. This number should
     # be close to machine precision.
     
-    if ((iter%1000)==0):
-        maxdiv = max(abs(DIV@u+u_norm))
-        diff = max(abs(u-uold))/dt
+    if ((step % 1000)==0):
+        maxdiv = np.max(np.abs(DIV@u+u_norm))
+        diff = np.max(np.abs(u-uold))/dt
     
         print("maxdiv : ",maxdiv)
         print("diff   : ", diff)
          
        
-    iter += 1
+    step += 1
     
 
 
