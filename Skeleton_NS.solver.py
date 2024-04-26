@@ -6,7 +6,6 @@ Created on Mon Dec 14 12:25:58 2021
 """
 
 
-from scipy.sparse import diags
 from scipy.sparse import linalg as splinalg
 import scipy.sparse as sparse
 import matplotlib.pyplot as plt
