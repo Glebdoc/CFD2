@@ -190,13 +190,15 @@ while (diff>tol):
         print("maxdiv : ",maxdiv)
         print("diff   : ", diff)
          
-       
     step += 1
 
 
     if step%100==0: print("step at:",step)
 
 print("steps taken:", step)
+
+plt.imshow((E21@u).reshape((N+1,N+1)))
+plt.show()
     
 
 
