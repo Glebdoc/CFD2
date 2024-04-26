@@ -17,10 +17,10 @@ def get_Ht02(dual_width_1d, N):
             c+=1
     H0t2 = sparse.diags(cell_As,format='csc')
 
-    return splinalg.inv(H0t2), cell_As
+    return H0t2, cell_As
 
 
-def get_H1t1(primal_width_1d, dual_width_1d, N):
+def get_Ht11(primal_width_1d, dual_width_1d, N):
     h_e_mat = np.tile(np.tile(dual_width_1d,N),2)
     th_e_mat = np.tile(np.repeat(primal_width_1d,N+1),2)
 
@@ -68,7 +68,7 @@ def main():
 
 
     H0t2, cell_As = get_Ht02(h,N)
-    H1t1 = get_H1t1(th, h, N)
+    H1t1 = get_Ht11(th, h, N)
 
     plt.pcolormesh(X_h, Y_h,cell_As.reshape(N+1, N+1), edgecolors='k', linewidths=0.2)
 

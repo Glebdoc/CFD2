@@ -17,13 +17,13 @@ import hodge as hod
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 1e-5
+tol = 1e-4
 one = 1
 mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 3  		# mesh cells in x- and y-direction
+N = 30  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -117,8 +117,8 @@ u_pres = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
 u_pres = E21_norm @ u_pres
 
 #  Set up the Hodge matrices Ht11 and H1t1
-H1t1 = hod.get_H1t1(th, h, N)
-Ht11 = splinalg.inv(H1t1)
+Ht11 = hod.get_Ht11(th, h, N)
+H1t1 = splinalg.inv(Ht11)
 
 #  Set up the Hodge matrix Ht02
 Ht02, _ = hod.get_Ht02(h, N)
@@ -194,7 +194,9 @@ while (diff>tol):
     step += 1
 
 
-    if step%100==0: print(step)
+    if step%100==0: print("step at:",step)
+
+print("steps taken:", step)
     
 
 
