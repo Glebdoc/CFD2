@@ -23,7 +23,7 @@ mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 10  		# mesh cells in x- and y-direction
+N = 3  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -76,12 +76,14 @@ V_wall_right = 0
 tE21, tE21_norm = inc.computetE21(N)
 
 # Setup u_norm
-LB = U_wall_left*np.ones(N+1) * h 
-RB = U_wall_right*np.ones(N+1) * h
-TB = V_wall_top*np.ones(N+1) * h
-BB = V_wall_bot*np.ones(N+1) * h
-u_norm = np.concatenate((LB, RB, BB, TB), axis=0)
-
+LB = U_wall_left*np.ones(N) * th 
+RB = U_wall_right*np.ones(N) * th
+TB = V_wall_top*np.ones(N) * th
+BB = V_wall_bot*np.ones(N) * th
+u_norm = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
+# print('u_norm_shape',u_norm.shape)
+# print('tE21_norm shape', tE21_norm.shape)
+u_norm = tE21_norm @ u_norm
 
 
 # Insert the normal boundary conditions and split of the vector u_norm
@@ -110,8 +112,10 @@ RB = V_wall_right*np.ones(N+1) * h
 TB = U_wall_top*np.ones(N+1) * h
 BB = U_wall_bot*np.ones(N+1) * h
 u_pres = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
+# print('u_pres shape', u_pres.shape)
+# print('E21_norm shape', E21_norm.shape)
 u_pres = E21_norm @ u_pres
-u_norm = E21_norm @ u_norm
+
 #  Set up the Hodge matrices Ht11 and H1t1
 H1t1 = hod.get_H1t1(th, h, N)
 Ht11 = splinalg.inv(H1t1)
@@ -145,7 +149,7 @@ while (diff>tol):
     
     xi = Ht02@E21@u + u_pres_vort
 
-    print(xi.shape)
+    # print("xi.shpe",xi.shape)
 
     ux_xi[:, 0] = U_wall_bot*xi[:(N+1),0]
     uy_xi[:, 0] = V_wall_left*xi[::(N+1),0]
@@ -164,7 +168,6 @@ while (diff>tol):
     rhs_Pois = DIV@( u/dt - convective - VLaplace@u/Re - u_pres/Re) + u_norm/dt
     
     # Solve for the pressure
-    
     p = LU.solve(rhs_Pois)
     
     # Store the velocity from the previous time level in the vector uold
@@ -172,9 +175,9 @@ while (diff>tol):
     uold = u
     
     # Update the velocity field
-    
+    # print((E10@p).shape)
     u = u - dt*(convective + E10@p + (VLaplace@u)/Re + u_pres/Re)
-    
+    # print(u.shape)
     # Every other 1000 iations check whether you approach steady state and 
     # check whether you satsify conservation of mass. The largest rate at whci 
     # mass is created ot destroyed is denoted my 'maxdiv'. This number should
@@ -191,7 +194,7 @@ while (diff>tol):
     step += 1
 
 
-    if step%100: print(step)
+    if step%100==0: print(step)
     
 
 

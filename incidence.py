@@ -105,10 +105,10 @@ def compute_dual_E21(N):
     return matrix, matrix_extra
 
 
-tE21, tE21_extra = computetE21(N) 
-print(tE21.shape)
-E21, E21_extra = compute_dual_E21(N)
-print(E21.shape)
+# tE21, tE21_extra = computetE21(N) 
+# print(tE21.shape)
+# E21, E21_extra = compute_dual_E21(N)
+# print(E21.shape)
 
 # fig, axs = plt.subplots(1, 2)
 
@@ -120,13 +120,13 @@ print(E21.shape)
 # axs[1].imshow(E21_extra.todense(), cmap='binary', interpolation='nearest')
 # axs[1].set_title('Visualization of Sparse Matrix (b)')
 # axs[1].axis('off')
-num_rows, num_cols = E21_extra.shape
-plt.imshow(E21_extra.todense(), cmap='binary', interpolation='nearest', )
-plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
+# num_rows, num_cols = E21_extra.shape
+# plt.imshow(E21_extra.todense(), cmap='binary', interpolation='nearest', )
+# plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
 
-plt.xticks(np.arange(num_cols)-0.5, np.arange(num_cols))  # Shift x-ticks by -0.5
-plt.yticks(np.arange(num_rows)-0.5, np.arange(num_rows))  # Shift y-ticks by -0.5
+# plt.xticks(np.arange(num_cols)-0.5, np.arange(num_cols))  # Shift x-ticks by -0.5
+# plt.yticks(np.arange(num_rows)-0.5, np.arange(num_rows))  # Shift y-ticks by -0.5
 
-plt.colorbar()
-plt.show()
+# plt.colorbar()
+# plt.show()
 
