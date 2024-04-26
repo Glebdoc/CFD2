@@ -83,6 +83,7 @@ BB = V_wall_bot*np.ones(N+1) * h
 u_norm = np.concatenate((LB, RB, BB, TB), axis=0)
 
 
+
 # Insert the normal boundary conditions and split of the vector u_norm
 
 # Vector of fluxes is just zero...
@@ -109,7 +110,8 @@ RB = V_wall_right*np.ones(N+1) * h
 TB = U_wall_top*np.ones(N+1) * h
 BB = U_wall_bot*np.ones(N+1) * h
 u_pres = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
-
+u_pres = E21_norm @ u_pres
+u_norm = E21_norm @ u_norm
 #  Set up the Hodge matrices Ht11 and H1t1
 H1t1 = hod.get_H1t1(th, h, N)
 Ht11 = splinalg.inv(H1t1)
@@ -127,7 +129,7 @@ LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
 u_pres_vort = Ht02@u_pres
 temp = H1t1@tE10@Ht02@u_pres 
 
-u_pres = temp
+u_pres = np.copy(temp)
 
 VLaplace = H1t1@tE10@Ht02@E21
 DIV = tE21@Ht11
@@ -142,6 +144,8 @@ step = 0
 while (diff>tol):
     
     xi = Ht02@E21@u + u_pres_vort
+
+    print(xi.shape)
 
     ux_xi[:, 0] = U_wall_bot*xi[:(N+1),0]
     uy_xi[:, 0] = V_wall_left*xi[::(N+1),0]
@@ -185,6 +189,9 @@ while (diff>tol):
          
        
     step += 1
+
+
+    if step%100: print(step)
     
 
 
