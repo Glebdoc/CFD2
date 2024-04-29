@@ -110,6 +110,16 @@ def compute_dual_E21(N):
 # E21, E21_extra = compute_dual_E21(N)
 # print(E21.shape)
 
+
+
+
+
+
+
+
+
+
+
 # fig, axs = plt.subplots(1, 2)
 
 # axs[0].imshow(E21.todense(), cmap='binary', interpolation='nearest')
