@@ -17,13 +17,13 @@ import hodge as hod
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 1e-4
+tol = 1e-6
 one = 1
 mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 32  		# mesh cells in x- and y-direction
+N = 24  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -81,27 +81,20 @@ RB = U_wall_right*np.ones(N) * th
 TB = V_wall_top*np.ones(N) * th
 BB = V_wall_bot*np.ones(N) * th
 u_norm = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
-# print('u_norm_shape',u_norm.shape)
-# print('tE21_norm shape', tE21_norm.shape)
-u_norm = tE21_norm @ u_norm
-
 
 # Insert the normal boundary conditions and split of the vector u_norm
-
-# Vector of fluxes is just zero...
-
+u_norm = tE21_norm @ u_norm
 
 # Set up the outer-oriented incidence matrix tE10
 # Done
 
 #  Set up the sparse, inner-oriented  incidence matrix E10
-E10 = - tE21.transpose()
+E10 = -tE21.transpose()
 #   DONE
 
 #  Set up the (extended) sparse, inner-oriented incidence matrix E21
 E21, E21_norm = inc.compute_dual_E21(N)
 #   DONE
-
 tE10 = E21.transpose()
 
 
@@ -149,7 +142,7 @@ step = 0
 while (diff>tol):
     
     xi = Ht02@E21@u + u_pres_vort
-    
+
     ux_xi[:, 0] = U_wall_bot*xi[:(N+1),0]
     uy_xi[:, 0] = V_wall_left*xi[::(N+1),0]
 
@@ -175,9 +168,7 @@ while (diff>tol):
     uold = u
     
     # Update the velocity field
-    
     u = u - dt*(convective + E10@p + (VLaplace@u)/Re + u_pres/Re)
-    # print(u.shape)
     # Every other 1000 iations check whether you approach steady state and 
     # check whether you satsify conservation of mass. The largest rate at whci 
     # mass is created ot destroyed is denoted my 'maxdiv'. This number should
@@ -193,7 +184,7 @@ while (diff>tol):
        
     step += 1
 
-    if step % 100==0: print("step at:",step)
+    #if step % 100==0: print("step at:",step)
 
 print("steps taken:", step) 
 
@@ -208,10 +199,13 @@ def get_pressure(p, N):
     p_inner = p_remaining[:, 1:len(p_remaining[0]) - 1]
     return p_inner
 
-p_inner = get_pressure(p, N)
-print("Pressure inner:", p_inner)
-plt.imshow(p_inner)
-plt.show()
+print("Vorticity shape", xi.shape)
+
+# p_inner = get_pressure(p, N)
+# print("Pressure inner:", p_inner)
+# plt.imshow(p_inner)
+# plt.colorbar()
+# plt.show()
 
 
                     
@@ -219,22 +213,63 @@ plt.show()
 # We need to convert this to fluxes on the primal grid
 # Thus we need to multiply with the Hodge matrix Ht11
 
-print(f"N = {N}")
 fluxes = Ht11@u
 
-plt.imshow((E21 @ u).reshape((N+1,N+1)))
-plt.title("U")
+print("fluxes shape", fluxes.shape)
+print(fluxes)
+streamFunction = np.zeros([N+1,N+1])
+
+hor_fluxes = fluxes[0:int(len(fluxes)/2)]
+ver_fluxes = fluxes[int(len(fluxes)/2):]
+
+stream_start = 0 
+
+xi = Ht02@E21@u
+xi = xi.reshape(N+1, N+1)
+
+
+coord_stack_th = np.cumsum(np.insert(th,0,0))
+
+X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th)
+
+fig, ax = plt.subplots()
+quadmesh = ax.pcolormesh(X_th, Y_th, xi, shading='gouraud', cmap='viridis')
+
+# Setting aspect ratio to equal
+ax.set_aspect('equal')
+
 plt.show()
 
-print(fluxes.shape)
-print(len(tx)**2)
-# print(fluxes)
-print(E21.shape)
-plt.imshow((E21 @ fluxes).reshape((N+1,N+1)))
-plt.show()
+# test_hor = np.arange(0, len(hor_fluxes))
+# print("test_hor", test_hor)
+# test_ver = np.arange(0, len(ver_fluxes))
+# print("test_ver", test_ver)
 
-# print(flux_curl.shape)
+# for j in range(N+1):
+#     for i in range(N+1):
+#         if i == 0 and j == 0:
+#             streamFunction[i,j] = 0
+#             continue
+
+#         streamFunction[i,j] = streamFunction[i-1, j] - ver_fluxes[j*N + i-1]
+
+#         if i == 0:
+#             streamFunction[i,j] = streamFunction[i,j-1] + hor_fluxes[(j-1)*(N+1)]
 
 
 
-# print("fluxes shape", fluxes.shape)
+
+# plt.imshow(np.rot90(streamFunction, 2))
+# plt.show()
+
+# coord_stack_th = np.cumsum(np.insert(th,0,0))
+# X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th)
+
+
+# fig, ax = plt.subplots()
+# quadmesh = ax.pcolormesh(X_th, Y_th, streamFunction, shading='gouraud', cmap='viridis')
+
+# # Setting aspect ratio to equal
+# ax.set_aspect('equal')
+
+# plt.show()

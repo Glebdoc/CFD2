@@ -104,6 +104,13 @@ def compute_dual_E21(N):
     matrix, matrix_extra = move(E21, columns_to_remove, nSurfaces)
     return matrix, matrix_extra
 
+# tE21, tE21_extra = computetE21(N)
+# E21, E21_extra = compute_dual_E21(N)
+
+# plt.imshow(E21.todense(), cmap='binary', interpolation='nearest')
+# plt.title('Visualization of Sparse Matrix (a)')
+# plt.colorbar()
+# plt.show()
 
 # tE21, tE21_extra = computetE21(N) 
 # print(tE21.shape)
