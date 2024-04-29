@@ -17,13 +17,13 @@ import hodge as hod
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 1e-5
+tol = 1e-4
 one = 1
 mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 24  		# mesh cells in x- and y-direction
+N = 32  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -102,7 +102,7 @@ E10 = - tE21.transpose()
 E21, E21_norm = inc.compute_dual_E21(N)
 #   DONE
 
-tE10 = -E21.transpose()
+tE10 = E21.transpose()
 
 
 #  Split off the prescribed tangential velocity and store this in 
@@ -123,6 +123,7 @@ H1t1 = splinalg.inv(Ht11)
 #  Set up the Hodge matrix Ht02
 Ht02, _ = hod.get_Ht02(h, N)
 
+
 A = tE21@Ht11@E10
 
 n = A.shape[0]
@@ -133,7 +134,7 @@ LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
 u_pres_vort = Ht02@u_pres
 temp = H1t1@tE10@Ht02@u_pres 
 
-u_pres = np.copy(temp)
+u_pres = temp
 
 VLaplace = H1t1@tE10@Ht02@E21
 DIV = tE21@Ht11
@@ -148,9 +149,7 @@ step = 0
 while (diff>tol):
     
     xi = Ht02@E21@u + u_pres_vort
-
-    # print("xi.shpe",xi.shape)
-
+    
     ux_xi[:, 0] = U_wall_bot*xi[:(N+1),0]
     uy_xi[:, 0] = V_wall_left*xi[::(N+1),0]
 
@@ -164,10 +163,11 @@ while (diff>tol):
     convective[N*(N+1):2*N*(N+1)] = np.reshape((ux_xi[:-1]+ux_xi[1:])*h/2, ((N*(N+1), 1)), order='f')
             
     # Set up the right hand side for the equation for the pressure
-    
+            
     rhs_Pois = DIV@( u/dt - convective - VLaplace@u/Re - u_pres/Re) + u_norm/dt
     
     # Solve for the pressure
+    
     p = LU.solve(rhs_Pois)
     
     # Store the velocity from the previous time level in the vector uold
@@ -175,7 +175,7 @@ while (diff>tol):
     uold = u
     
     # Update the velocity field
-    # print((E10@p).shape)
+    
     u = u - dt*(convective + E10@p + (VLaplace@u)/Re + u_pres/Re)
     # print(u.shape)
     # Every other 1000 iations check whether you approach steady state and 
@@ -193,8 +193,7 @@ while (diff>tol):
        
     step += 1
 
-
-    if step%100==0: print("step at:",step)
+    if step % 100==0: print("step at:",step)
 
 print("steps taken:", step) 
 
@@ -202,11 +201,11 @@ def get_pressure(p, N):
     p_top = p[0:N]
     p_remaining = p[N:]
 
-    p_bottom = p[len(p)-N:]
+    p_bottom = p[len(p)- N:]
     p_remaining = p_remaining[0:len(p_remaining)-N]
     p_remaining = p_remaining.reshape(N,N+2)
 
-    p_inner = p_remaining[:,1:len(p_remaining[0])-1]
+    p_inner = p_remaining[:, 1:len(p_remaining[0]) - 1]
     return p_inner
 
 p_inner = get_pressure(p, N)
@@ -220,5 +219,22 @@ plt.show()
 # We need to convert this to fluxes on the primal grid
 # Thus we need to multiply with the Hodge matrix Ht11
 
-fluxes = Ht11@u 
+print(f"N = {N}")
+fluxes = Ht11@u
+
+plt.imshow((E21 @ u).reshape((N+1,N+1)))
+plt.title("U")
+plt.show()
+
+print(fluxes.shape)
+print(len(tx)**2)
+# print(fluxes)
+print(E21.shape)
+plt.imshow((E21 @ fluxes).reshape((N+1,N+1)))
+plt.show()
+
+# print(flux_curl.shape)
+
+
+
 # print("fluxes shape", fluxes.shape)
