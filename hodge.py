@@ -1,23 +1,33 @@
 
 from scipy.sparse import linalg as splinalg
 import scipy.sparse as sparse
+from scipy.sparse import diags
 import numpy as np
 
 
-def get_Ht02(dual_width_1d, N):
-    Np1 = N+1
-    cell_As = np.zeros(Np1*Np1)
+def get_Ht02(h, N):
+    # Np1 = N+1
+    # cell_As = np.zeros(Np1*Np1)
 
-    c = 0
-    for j in dual_width_1d:
-        for i in dual_width_1d:
-            cell_As[c] = 1/(i * j)
+    # c = 0
+    # for j in dual_width_1d:
+    #     for i in dual_width_1d:
+    #         cell_As[c] = 1/(i * j)
             
-            c+=1
+    #         c+=1
 
-    Ht02 = sparse.diags(cell_As,format='csc')
+    # Ht02 = sparse.diags(cell_As,format='csc')
 
-    return Ht02, cell_As
+    # return Ht02, cell_As
+    diag = np.empty((N+1)**2)
+
+    for d1, d1_val in enumerate(h):
+        for d2, d2_val in enumerate(h):
+            diag[d1*(N+1) + d2] = d1_val*d2_val
+
+    H2t0 = diags(diag)
+    Ht02 = diags(1/diag)
+    return Ht02, H2t0   
 
 
 def get_Ht11(primal_width_1d, dual_width_1d, N):
@@ -84,6 +94,30 @@ def main():
     plt.imshow(H1t1.todense())
     plt.colorbar()
     plt.show()
+
+def get_Ht11(primal_width_1d, dual_width_1d, N):
+    # h_e_mat = np.tile(np.tile(dual_width_1d,N),2)
+    # th_e_mat = np.tile(np.repeat(primal_width_1d,N+1),2)
+
+    # # e_ratio = h_e_mat / th_e_mat
+    # e_ratio = th_e_mat / h_e_mat
+    h = dual_width_1d
+    th = primal_width_1d
+    diag = np.empty(2*N*(N+1))
+    # firstly go through u fluxes
+    for p, p_val in enumerate(th):
+        for d, d_val in enumerate(h):
+            diag[p*(N+1) + d] = p_val / d_val
+
+    # secondly go through v fluxes
+    for d, d_val in enumerate(h):
+        for p, p_val in enumerate(th):
+            diag[N*(N+1) + d*N + p] = p_val / d_val
+
+
+    Ht11 = diags(diag)
+    H1t1 = diags(1/diag)
+    return H1t1, Ht11
 
 if __name__ == '__main__':
     main()

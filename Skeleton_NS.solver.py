@@ -17,20 +17,20 @@ import hodge as hod
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 1e-6
+tol = 1e-8
 one = 1
 mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 24  		# mesh cells in x- and y-direction
+N = 32  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
-tx = np.zeros([N+1,1])     # grid points on primal grid
-x = np.zeros([N+2,1])      # grid points on dual grid
-th = np.zeros([N])       # mesh width primal grid
-h = np.zeros([N+1])      # mesh width dual grid 
+tx = np.zeros(N+1)     # grid points on primal grid
+x = np.zeros(N+2)      # grid points on dual grid
+th = np.zeros(N)       # mesh width primal grid
+h = np.zeros(N+1)      # mesh width dual grid 
 
 #Generation of a non-uniform grid
 x[0] = 0
@@ -80,21 +80,17 @@ LB = U_wall_left*np.ones(N) * th
 RB = U_wall_right*np.ones(N) * th
 TB = V_wall_top*np.ones(N) * th
 BB = V_wall_bot*np.ones(N) * th
-u_norm = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
+u_norm = np.concatenate((LB, RB, BB, TB), axis=0)
 
 # Insert the normal boundary conditions and split of the vector u_norm
 u_norm = tE21_norm @ u_norm
+u_norm = u_norm[:,np.newaxis]
+print('u_norm.shape', u_norm.shape)
 
-# Set up the outer-oriented incidence matrix tE10
-# Done
 
-#  Set up the sparse, inner-oriented  incidence matrix E10
 E10 = -tE21.transpose()
-#   DONE
 
-#  Set up the (extended) sparse, inner-oriented incidence matrix E21
 E21, E21_norm = inc.compute_dual_E21(N)
-#   DONE
 tE10 = E21.transpose()
 
 
@@ -102,38 +98,36 @@ tE10 = E21.transpose()
 #  the vector u_pres
 LB = V_wall_left*np.ones(N+1) * h 
 RB = V_wall_right*np.ones(N+1) * h
-TB = U_wall_top*np.ones(N+1) * h
 BB = U_wall_bot*np.ones(N+1) * h
-u_pres = np.concatenate((LB, RB, BB, TB), axis=0)[:,np.newaxis]
-# print('u_pres shape', u_pres.shape)
-# print('E21_norm shape', E21_norm.shape)
-u_pres = E21_norm @ u_pres
+TB = U_wall_top*np.ones(N+1) * h
+print(TB)
+u_pres = np.concatenate((LB, RB, BB, TB), axis=0)
+
+u_pres = (E21_norm @ u_pres)[:,np.newaxis]
+
+print('u_pres.shape', u_pres.shape) 
 
 #  Set up the Hodge matrices Ht11 and H1t1
-Ht11 = hod.get_Ht11(th, h, N)
-H1t1 = splinalg.inv(Ht11)
+H1t1, Ht11= hod.get_Ht11(th, h, N)
+
+# Ht11 = hod.get_Ht11(th, h, N)
+# H1t1 = splinalg.inv(Ht11)
 
 #  Set up the Hodge matrix Ht02
-Ht02, _ = hod.get_Ht02(h, N)
-
+#Ht02, _ = hod.get_Ht02(h, N)
+Ht02, H2t0  = hod.get_Ht02(h, N)
 
 A = tE21@Ht11@E10
-
-n = A.shape[0]
 LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
 
-
 # print(Ht02.shape)
-u_pres_vort = Ht02@u_pres
 temp = H1t1@tE10@Ht02@u_pres 
 
-u_pres = temp
-
-VLaplace = H1t1@tE10@Ht02@E21
+VLaplace = H1t1@tE10
 DIV = tE21@Ht11
 
-ux_xi = np.zeros([(N+1),(N+1)], dtype = float)
-uy_xi = np.zeros([(N+1),(N+1)], dtype = float)
+ux_xi = np.zeros([N+1,N+1], dtype = float)
+uy_xi = np.zeros([N+1,N+1], dtype = float)
 convective = np.zeros([2*N*(N+1),1], dtype = float)
 
 diff = 1
@@ -141,7 +135,7 @@ step = 0
 
 while (diff>tol):
     
-    xi = Ht02@E21@u + u_pres_vort
+    xi = Ht02@(E21@u + u_pres)
 
     ux_xi[:, 0] = U_wall_bot*xi[:(N+1),0]
     uy_xi[:, 0] = V_wall_left*xi[::(N+1),0]
@@ -149,34 +143,37 @@ while (diff>tol):
     ux_xi[:, N] = U_wall_top*xi[N*(N+1):(N+1)*(N+1), 0]
     uy_xi[:, N] = V_wall_right*xi[N::(N+1), 0]
 
-    ux_xi[:, 1:N] = np.reshape((u[(N+1):N*(N+1)]+u[:(N-1)*(N+1)])*xi[(N+1):N*(N+1)], ((N+1), (N-1)), order='f')/(2*h[:,None])
-    uy_xi[:, 1:N] = np.reshape((u[N*(N+1):2*N*(N+1)]+u[N*(N+1)-1:2*N*(N+1)-1]), ((N+1), (N)), order='C')[:, 1:]*np.reshape(xi, (N+1, N+1))[:, 1:N]/(2*h[:,None]) 
+    # ux_xi[:, 1:N] = np.reshape((u[(N+1):N*(N+1)]+u[:(N-1)*(N+1)])*xi[(N+1):N*(N+1)], ((N+1), (N-1)), order='f')/(2*h[:,None])
+    # uy_xi[:, 1:N] = np.reshape((u[N*(N+1):2*N*(N+1)]+u[N*(N+1)-1:2*N*(N+1)-1]), ((N+1), (N)), order='C')[:, 1:]*np.reshape(xi, (N+1, N+1))[:, 1:N]/(2*h[:,None]) 
+    ux_xi[:, 1:N] = np.reshape((u[(N+1):N*(N+1)]+u[:(N-1)*(N+1)])*xi[(N+1):N*(N+1)], ((N+1), (N-1)), order='f')/(2*h[:, None])
+    uy_xi[:, 1:N] = np.reshape((u[N*(N+1):2*N*(N+1)]+u[N*(N+1)-1:2*N*(N+1)-1]), ((N+1), N), order='C')[:, 1:]*np.reshape(xi, (N+1, N+1))[:, 1:N]/(2*h[:, None])
 
-    convective[:N*(N+1)] = np.reshape(-(uy_xi[:-1]+uy_xi[1:])*h/2, ((N*(N+1), 1)))
-    convective[N*(N+1):2*N*(N+1)] = np.reshape((ux_xi[:-1]+ux_xi[1:])*h/2, ((N*(N+1), 1)), order='f')
+    convective[:N*(N+1)] = np.reshape(-(uy_xi[:-1]+uy_xi[1:])*h/2, (N*(N+1), 1))
+    convective[N*(N+1):2*N*(N+1)] = np.reshape((ux_xi[:-1]+ux_xi[1:])*h/2, (N*(N+1), 1), order='f')
             
     # Set up the right hand side for the equation for the pressure
+    VLaplace_xi = VLaplace@xi
             
-    rhs_Pois = DIV@( u/dt - convective - VLaplace@u/Re - u_pres/Re) + u_norm/dt
+    f = DIV@( u/dt - convective - VLaplace_xi/Re) + u_norm/dt
     
     # Solve for the pressure
     
-    p = LU.solve(rhs_Pois)
+    p = LU.solve(f)
     
     # Store the velocity from the previous time level in the vector uold
     
     uold = u
     
     # Update the velocity field
-    u = u - dt*(convective + E10@p + (VLaplace@u)/Re + u_pres/Re)
+    u = u - dt*(convective + E10@p + VLaplace_xi/Re)
     # Every other 1000 iations check whether you approach steady state and 
     # check whether you satsify conservation of mass. The largest rate at whci 
     # mass is created ot destroyed is denoted my 'maxdiv'. This number should
     # be close to machine precision.
     
-    if ((step % 1000)==0):
+    if (step % 1000)==0:
         maxdiv = np.max(np.abs(DIV@u+u_norm))
-        diff = np.max(np.abs(u-uold))/dt
+        diff = np.max(np.abs(u-uold))
     
         print("maxdiv : ",maxdiv)
         print("diff   : ", diff)
@@ -199,7 +196,7 @@ def get_pressure(p, N):
     p_inner = p_remaining[:, 1:len(p_remaining[0]) - 1]
     return p_inner
 
-print("Vorticity shape", xi.shape)
+# print("Vorticity shape", xi.shape)
 
 # p_inner = get_pressure(p, N)
 # print("Pressure inner:", p_inner)
@@ -212,58 +209,75 @@ print("Vorticity shape", xi.shape)
 # u that we have calculated is actually a circulation along edges on the dual grid
 # We need to convert this to fluxes on the primal grid
 # Thus we need to multiply with the Hodge matrix Ht11
+u_pres_vort = Ht02 @ u_pres
+xi = (Ht02 @ E21 @ u + u_pres_vort).flatten()
+
+
+
+coord_stack_th = np.cumsum(np.insert(th,0,0))
+
+X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th, indexing='xy')
+xi_grid = np.reshape(xi, (N+1, N+1), order='C')
+levels_vorticity = [-3., -2., -1., -0.5, 0., 0.5, 1., 2., 3., 4., 5.]
+levels_vorticity.sort()
+plt.contour(X_th, Y_th, xi_grid, levels=levels_vorticity)
+plt.colorbar()
+plt.axis("scaled")
+plt.show()
+# fig, ax = plt.subplots()
+# quadmesh = ax.pcolormesh(X_th, Y_th, xi, shading='gouraud', cmap='viridis')
+
+# # Setting aspect ratio to equal
+# ax.set_aspect('equal')
+
+# plt.show()
 
 fluxes = Ht11@u
+# print("fluxes shape", fluxes.shape)
+# print("fluxes", fluxes)
 
 print("fluxes shape", fluxes.shape)
-print(fluxes)
 streamFunction = np.zeros([N+1,N+1])
 
 hor_fluxes = fluxes[0:int(len(fluxes)/2)]
 ver_fluxes = fluxes[int(len(fluxes)/2):]
 
-stream_start = 0 
-
-xi = Ht02@E21@u
-xi = xi.reshape(N+1, N+1)
-
-
-coord_stack_th = np.cumsum(np.insert(th,0,0))
-
-X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th)
-
-fig, ax = plt.subplots()
-quadmesh = ax.pcolormesh(X_th, Y_th, xi, shading='gouraud', cmap='viridis')
-
-# Setting aspect ratio to equal
-ax.set_aspect('equal')
-
-plt.show()
-
+# stream_start = 0 
 # test_hor = np.arange(0, len(hor_fluxes))
 # print("test_hor", test_hor)
 # test_ver = np.arange(0, len(ver_fluxes))
 # print("test_ver", test_ver)
 
-# for j in range(N+1):
-#     for i in range(N+1):
-#         if i == 0 and j == 0:
-#             streamFunction[i,j] = 0
-#             continue
-
-#         streamFunction[i,j] = streamFunction[i-1, j] - ver_fluxes[j*N + i-1]
-
-#         if i == 0:
-#             streamFunction[i,j] = streamFunction[i,j-1] + hor_fluxes[(j-1)*(N+1)]
 
 
+for j in range(N+1):
+    for i in range(N+1):
+        if i == 0 and j == 0:
+            streamFunction[i,j] = 0
+            continue
 
+        streamFunction[i,j] = streamFunction[i-1, j] - ver_fluxes[j*N + i-1]
 
-# plt.imshow(np.rot90(streamFunction, 2))
+        if i == 0:
+            streamFunction[i,j] = streamFunction[i,j-1] + hor_fluxes[(j-1)*(N+1)]
+
+coord_stack_th = np.cumsum(np.insert(th,0,0))
+X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th)
+levels_stream = [0.1175, 0.115, 0.11, 0.1, 9e-2, 7e-2, 5e-2, 3e-2, 1e-2, 1e-4, 1e-5, 1e-10, 0, -1e-6, -1e-5, -5e-5,
+                     -1e-4, -2.5e-4, -5e-4, -1e-3, -1.5e-3]
+levels_stream.sort()
+streamFunction = np.flipud(streamFunction)
+streamFunction = np.rot90(streamFunction, -1)
+plt.contour(X_th, Y_th, streamFunction, 
+            levels=levels_stream, cmap='viridis'
+            )
+plt.colorbar()
+plt.axis("scaled")
+plt.show()
+
+# plt.contour(np.rot90(streamFunction, 2))
 # plt.show()
 
-# coord_stack_th = np.cumsum(np.insert(th,0,0))
-# X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th)
 
 
 # fig, ax = plt.subplots()
