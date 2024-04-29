@@ -17,13 +17,13 @@ import hodge as hod
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 1e-4
+tol = 1e-5
 one = 1
 mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 30  		# mesh cells in x- and y-direction
+N = 24  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -196,11 +196,29 @@ while (diff>tol):
 
     if step%100==0: print("step at:",step)
 
-print("steps taken:", step)
-    
+print("steps taken:", step) 
 
+def get_pressure(p, N):
+    p_top = p[0:N]
+    p_remaining = p[N:]
 
-                
+    p_bottom = p[len(p)-N:]
+    p_remaining = p_remaining[0:len(p_remaining)-N]
+    p_remaining = p_remaining.reshape(N,N+2)
+
+    p_inner = p_remaining[:,1:len(p_remaining[0])-1]
+    return p_inner
+
+p_inner = get_pressure(p, N)
+print("Pressure inner:", p_inner)
+plt.imshow(p_inner)
+plt.show()
+
 
                     
-                
+# u that we have calculated is actually a circulation along edges on the dual grid
+# We need to convert this to fluxes on the primal grid
+# Thus we need to multiply with the Hodge matrix Ht11
+
+fluxes = Ht11@u 
+# print("fluxes shape", fluxes.shape)
