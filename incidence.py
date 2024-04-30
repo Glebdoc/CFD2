@@ -104,14 +104,21 @@ def compute_dual_E21(N):
     matrix, matrix_extra = move(E21, columns_to_remove, nSurfaces)
     return matrix.tocsc(), matrix_extra.tocsc()
 
-# tE21, tE21_extra = computetE21(N)
-# E21, E21_extra = compute_dual_E21(N)
+tE21, tE21_extra = computetE21(N)
+E21, E21_extra = compute_dual_E21(N)
 
-# plt.imshow(E21.todense(), cmap='binary', interpolation='nearest')
-# plt.title('Visualization of Sparse Matrix (a)')
-# plt.colorbar()
-# plt.show()
+E10 = -tE21.transpose()
 
+def plotMatrix(matrix):
+    num_rows, num_cols = matrix.shape
+    plt.xticks(np.arange(num_cols)-0.5, np.arange(num_cols))  # Shift x-ticks by -0.5
+    plt.yticks(np.arange(num_rows)-0.5, np.arange(num_rows))  # Shift y-ticks by -0.5
+    plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
+    plt.imshow(matrix.todense(), cmap='plasma', interpolation='nearest')
+    plt.colorbar()
+    plt.show()
+
+plotMatrix(E10)
 # tE21, tE21_extra = computetE21(N) 
 # print(tE21.shape)
 # E21, E21_extra = compute_dual_E21(N)
