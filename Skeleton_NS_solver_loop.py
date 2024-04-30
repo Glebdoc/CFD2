@@ -241,7 +241,7 @@ def main():
     configs_re_100 = list(it.product([Re_list[0]],N_list,tol_list))
     configs_re_1000 = list(it.product([Re_list[1]],N_list,tol_list))
     
-    for Re, N, tol in configs_re_100:
+    for Re, N, tol in configs_re_1000:
         print(f"Now Running cavity for N = {N}, tol = {tol}, and Re of {Re}")
         
         run_cavity_2d(N, tol, Re)

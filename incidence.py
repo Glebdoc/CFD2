@@ -109,14 +109,14 @@ def compute_dual_E21(N):
 
 # E10 = -tE21.transpose()
 
-def plotMatrix(matrix):
-    num_rows, num_cols = matrix.shape
-    plt.xticks(np.arange(num_cols)-0.5, np.arange(num_cols))  # Shift x-ticks by -0.5
-    plt.yticks(np.arange(num_rows)-0.5, np.arange(num_rows))  # Shift y-ticks by -0.5
-    plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
-    plt.imshow(matrix.todense(), cmap='plasma', interpolation='nearest')
-    plt.colorbar()
-    plt.show()
+# def plotMatrix(matrix):
+#     num_rows, num_cols = matrix.shape
+    # plt.xticks(np.arange(num_cols)-0.5, np.arange(num_cols))  # Shift x-ticks by -0.5
+    # plt.yticks(np.arange(num_rows)-0.5, np.arange(num_rows))  # Shift y-ticks by -0.5
+#     plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
+#     plt.imshow(matrix.todense(), cmap='plasma', interpolation='nearest')
+#     plt.colorbar()
+#     plt.show()
 
 # plotMatrix(E10)
 # tE21, tE21_extra = computetE21(N) 
