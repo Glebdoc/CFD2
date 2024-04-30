@@ -12,18 +12,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import incidence as inc
 import hodge as hod
+import json
 
 #  00D#MMXXI#
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 1e-8
+tol = 1e-7
 one = 1
 mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 32  		# mesh cells in x- and y-direction
+N = 16  		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -118,7 +119,7 @@ H1t1, Ht11= hod.get_Ht11(th, h, N)
 Ht02, H2t0, _  = hod.get_Ht02(h, N)
 
 A = tE21@Ht11@E10
-print(type(A))
+
 LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
 
 # print(Ht02.shape)
@@ -132,7 +133,13 @@ uy_xi = np.zeros([N+1,N+1], dtype = float)
 convective = np.zeros([2*N*(N+1),1], dtype = float)
 
 diff = 1
-step = 0
+maxdiv = 1
+step = 1
+residual_step_hist = [step]
+
+maxdiv_list = [maxdiv]
+diff_list = [diff]
+
 
 while (diff>tol):
     
@@ -172,7 +179,7 @@ while (diff>tol):
     # mass is created ot destroyed is denoted my 'maxdiv'. This number should
     # be close to machine precision.
     
-    if (step % 1000)==0:
+    if (step % 500) == 0:
         maxdiv = abs(np.max(DIV@u+u_norm))
         diff = abs(np.max(u-uold))
         
@@ -181,23 +188,59 @@ while (diff>tol):
         print("maxdiv : ",maxdiv)
         print("diff   : ", diff)
         print()
-         
+
+        residual_step_hist.append(step)
+        maxdiv_list.append(maxdiv)
+        diff_list.append(diff)
        
     step += 1
 
     #if step % 100==0: print("step at:",step)
 
 # a = np.array([1, 2, 3, 4])
-np.save(f'data/pressure_N_{N}_Re{Re}_tol_{tol}.npy', p)
-np.save(f'data/velocity_N_{N}_Re{Re}_tol_{tol}.npy', u)
 
-p = np.load(f'data/pressure_N_{N}_Re{Re}_tol_{tol}.npy')
-u = np.load(f'data/velocity_N_{N}_Re{Re}_tol_{tol}.npy')
+# plt.semilogy(residual_step_hist, diff_list)
+# plt.semilogy(residual_step_hist, maxdiv_list)
+# plt.show()
 
 
-# raise "error remove this line lol"
+save_config = {"dt": dt,
+               "steps": step,
+               "Re": Re,
+               "N": N,
+               "tol": tol,
+               "bcs": {"U_wall_top":  U_wall_top,
+                        "U_wall_bot": U_wall_bot,
+                        "U_wall_left": U_wall_left,
+                        "U_wall_right" : U_wall_right,
+                        "V_wall_top" : V_wall_top,
+                        "V_wall_bot" : V_wall_bot,
+                        "V_wall_left" : V_wall_left,
+                        "V_wall_right" : V_wall_right},
+                "residual_steps": residual_step_hist,
+                "diff_list": diff_list,
+                "maxdiv_list" : maxdiv_list,
+                "dual_widths" : h.tolist(),
+                "primal_widths" : th.tolist(),    
+                "h_min" : h_min,
+                "th_min" : th_min,             
+            }
 
-print("steps taken:", step) 
+np.save(f'data/pressure_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy', p)
+np.save(f'data/velocity_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy', u)
+
+with open(f"data/config_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.json", "w") as outfile: 
+    json.dump(save_config, outfile)
+
+p = np.load(f'data/pressure_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy')
+u = np.load(f'data/velocity_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy')
+
+with open(f"data/config_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.json") as json_file:
+    config = json.load(json_file)
+
+
+
+# print("steps taken:", step-1) 
 
 def get_pressure(p, N):
     p_top = p[0:N]
