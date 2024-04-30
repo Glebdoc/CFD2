@@ -115,7 +115,7 @@ H1t1, Ht11= hod.get_Ht11(th, h, N)
 
 #  Set up the Hodge matrix Ht02
 #Ht02, _ = hod.get_Ht02(h, N)
-Ht02, H2t0  = hod.get_Ht02(h, N)
+Ht02, H2t0, _  = hod.get_Ht02(h, N)
 
 A = tE21@Ht11@E10
 LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
