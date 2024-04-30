@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.sparse as sparse
 import matplotlib.pyplot as plt
-N = 3
+# N = 3
 
 def move(matrix, columns_to_remove, nVolumes):
     all_columns = np.arange(matrix.shape[1])
@@ -104,10 +104,10 @@ def compute_dual_E21(N):
     matrix, matrix_extra = move(E21, columns_to_remove, nSurfaces)
     return matrix.tocsc(), matrix_extra.tocsc()
 
-tE21, tE21_extra = computetE21(N)
-E21, E21_extra = compute_dual_E21(N)
+# tE21, tE21_extra = computetE21(N)
+# E21, E21_extra = compute_dual_E21(N)
 
-E10 = -tE21.transpose()
+# E10 = -tE21.transpose()
 
 def plotMatrix(matrix):
     num_rows, num_cols = matrix.shape
@@ -118,7 +118,7 @@ def plotMatrix(matrix):
     plt.colorbar()
     plt.show()
 
-plotMatrix(E10)
+# plotMatrix(E10)
 # tE21, tE21_extra = computetE21(N) 
 # print(tE21.shape)
 # E21, E21_extra = compute_dual_E21(N)
