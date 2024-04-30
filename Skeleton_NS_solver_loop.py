@@ -226,11 +226,6 @@ def run_cavity_2d(N, tol, Re, print_status = False):
     with open(f"data/config_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.json", "w") as outfile: 
         json.dump(save_config, outfile)
 
-    p = np.load(f'data/pressure_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy')
-    u = np.load(f'data/velocity_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy')
-
-    with open(f"data/config_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.json") as json_file:
-        config = json.load(json_file)
 
     print(f"Sucessfully Saved files with prefix data/config_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.EXTENSION")
 
