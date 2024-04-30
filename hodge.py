@@ -94,10 +94,10 @@ def gen_plots():
     H1t1, Ht11 = get_Ht11(th, h, N)
 
 
-    plt.title("DOF ratio from dual points to primal surfaces  $\mathbb{H}^{2\tilde{0}}$")
+    plt.title(r"DOF ratio from dual points to primal surfaces  $\mathbb{H}^{2\tilde{0}}$")
     plt.xlabel("$x$")
     plt.ylabel("$y$")
-    plt.pcolormesh(X_h, Y_h,areas.reshape(N+1, N+1), edgecolors='k', linewidths=0.2)
+    plt.pcolormesh(X_h, Y_h,areas.reshape(N+1, N+1), edgecolors='k', linewidths=0.4, cmap = 'plasma')
     plt.colorbar()
     # plt.legend()
     # plt.savefig()
@@ -107,8 +107,11 @@ def gen_plots():
     plt.close()
 
     # plt.clf()
-    plt.matshow(Ht02.todense())
+    plt.matshow(Ht02.todense(),cmap = 'plasma')
+    # plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
     plt.title(r"$\mathbb{H}^{\tilde{0} 2}$")
+    plt.hlines(y=np.arange(0, Ht02.shape[1])+0.5, xmin=np.full(Ht02.shape[1], 0)-0.5, xmax=np.full(Ht02.shape[1], Ht02.shape[1])-0.5, color="black",linewidth=0.4)
+    plt.vlines(x=np.arange(0, Ht02.shape[1])+0.5, ymin=np.full(Ht02.shape[1], 0)-0.5, ymax=np.full(Ht02.shape[1], Ht02.shape[1])-0.5, color="black",linewidth=0.4)
     plt.colorbar()
     plt.tight_layout()
     plt.savefig(f"images/hodge/Ht02_N_{N}.pdf")
@@ -116,15 +119,21 @@ def gen_plots():
     plt.close()
 
 
-    plt.matshow(H1t1.todense())
+    plt.matshow(H1t1.todense(),cmap = 'plasma')
+    # plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
     plt.title(r"$\mathbb{H}^{1 \tilde{1}}$")
+    plt.hlines(y=np.arange(0, H1t1.shape[1])+0.5, xmin=np.full(H1t1.shape[1], 0)-0.5, xmax=np.full(H1t1.shape[1], H1t1.shape[1])-0.5, color="black",linewidth=0.4)
+    plt.vlines(x=np.arange(0, H1t1.shape[1])+0.5, ymin=np.full(H1t1.shape[1], 0)-0.5, ymax=np.full(H1t1.shape[1], H1t1.shape[1])-0.5, color="black",linewidth=0.4)
     plt.colorbar()
     plt.tight_layout()
     plt.savefig(f"images/hodge/H1t1_N_{N}.pdf")
     plt.close()
 
-    plt.matshow(Ht11.todense())
+    plt.matshow(Ht11.todense(),cmap = 'plasma')
+    # plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
     plt.title(r"$\mathbb{H}^{ \tilde{1} 1}$")
+    plt.hlines(y=np.arange(0, Ht11.shape[1])+0.5, xmin=np.full(Ht11.shape[1], 0)-0.5, xmax=np.full(Ht11.shape[1], Ht11.shape[1])-0.5, color="black",linewidth=0.4)
+    plt.vlines(x=np.arange(0, Ht11.shape[1])+0.5, ymin=np.full(Ht11.shape[1], 0)-0.5, ymax=np.full(Ht11.shape[1], Ht11.shape[1])-0.5, color="black",linewidth=0.4)
     plt.colorbar()
     plt.tight_layout()
     plt.savefig(f"images/hodge/Ht11_N_{N}.pdf")
