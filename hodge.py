@@ -6,7 +6,6 @@ import numpy as np
 
 
 
-
 def get_Ht02(h, N):
 
     diag = np.empty((N+1)**2)
@@ -48,8 +47,6 @@ def get_Ht11(primal_width_1d, dual_width_1d, N):
 
 def gen_plots():
 
-
-    import shutil
 
     import matplotlib.pyplot as plt
 

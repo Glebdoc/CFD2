@@ -9,7 +9,7 @@ def move(matrix, columns_to_remove, nVolumes):
 
     matrix_modified = matrix[:, columns_to_keep]
 
-    matrix_extra = sparse.csr_matrix((nVolumes, len(columns_to_remove)), dtype=int)
+    matrix_extra = sparse.lil_matrix((nVolumes, len(columns_to_remove)), dtype=int)
 
     for idx, col_idx in enumerate(columns_to_remove):
         column_to_move = matrix[:, col_idx].toarray()
@@ -22,7 +22,7 @@ def computetE21(N):
     nVolumes = N*N + N*4
     nEdges = 2*(N*N + 3*N)
 
-    E21 = sparse.csr_matrix((nVolumes, nEdges), dtype=int)
+    E21 = sparse.lil_matrix((nVolumes, nEdges), dtype=int)
 
     for j in range(N+2):
         for i in range(N+2):
@@ -73,7 +73,7 @@ def computetE21(N):
     columns_to_remove = np.concatenate((LB, RB, BB, UB))
     #columns_to_remove = np.sort(columns_to_remove)
     matrix, matrix_extra = move(E21, columns_to_remove, nVolumes)
-    return matrix, matrix_extra
+    return matrix.tocsc(), matrix_extra.tocsc()
 
 
 
@@ -82,7 +82,7 @@ def compute_dual_E21(N):
     nSurfaces = (N+1)**2
     nEdges = 2*nSurfaces + 2*(N+1)
 
-    E21 = sparse.csr_matrix((nSurfaces, nEdges), dtype=int)
+    E21 = sparse.lil_matrix((nSurfaces, nEdges), dtype=int)
     E21.setdiag(1, k=0)
     E21.setdiag(-1, k=N+1)
 
@@ -102,7 +102,7 @@ def compute_dual_E21(N):
     #columns_to_remove = np.sort(columns_to_remove)
 
     matrix, matrix_extra = move(E21, columns_to_remove, nSurfaces)
-    return matrix, matrix_extra
+    return matrix.tocsc(), matrix_extra.tocsc()
 
 # tE21, tE21_extra = computetE21(N)
 # E21, E21_extra = compute_dual_E21(N)

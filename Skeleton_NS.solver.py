@@ -118,6 +118,7 @@ H1t1, Ht11= hod.get_Ht11(th, h, N)
 Ht02, H2t0, _  = hod.get_Ht02(h, N)
 
 A = tE21@Ht11@E10
+print(type(A))
 LU = splinalg.splu(A,diag_pivot_thresh=0) # sparse LU decomposition
 
 # print(Ht02.shape)
@@ -172,16 +173,29 @@ while (diff>tol):
     # be close to machine precision.
     
     if (step % 1000)==0:
-        maxdiv = np.max(np.abs(DIV@u+u_norm))
-        diff = np.max(np.abs(u-uold))
-    
+        maxdiv = abs(np.max(DIV@u+u_norm))
+        diff = abs(np.max(u-uold))
+        
+        print("Step at:", step)
+        print("-------")
         print("maxdiv : ",maxdiv)
         print("diff   : ", diff)
+        print()
          
        
     step += 1
 
     #if step % 100==0: print("step at:",step)
+
+# a = np.array([1, 2, 3, 4])
+np.save(f'data/pressure_N_{N}_Re{Re}_tol_{tol}.npy', p)
+np.save(f'data/velocity_N_{N}_Re{Re}_tol_{tol}.npy', u)
+
+p = np.load(f'data/pressure_N_{N}_Re{Re}_tol_{tol}.npy')
+u = np.load(f'data/velocity_N_{N}_Re{Re}_tol_{tol}.npy')
+
+
+# raise "error remove this line lol"
 
 print("steps taken:", step) 
 
@@ -220,7 +234,7 @@ X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th, indexing='xy')
 xi_grid = np.reshape(xi, (N+1, N+1), order='C')
 levels_vorticity = [-3., -2., -1., -0.5, 0., 0.5, 1., 2., 3., 4., 5.]
 levels_vorticity.sort()
-plt.contour(X_th, Y_th, xi_grid, levels=levels_vorticity)
+plt.contourf(X_th, Y_th, xi_grid, levels=levels_vorticity)
 plt.colorbar()
 plt.axis("scaled")
 plt.show()
@@ -268,7 +282,7 @@ levels_stream = [0.1175, 0.115, 0.11, 0.1, 9e-2, 7e-2, 5e-2, 3e-2, 1e-2, 1e-4, 1
 levels_stream.sort()
 streamFunction = np.flipud(streamFunction)
 streamFunction = np.rot90(streamFunction, -1)
-plt.contour(X_th, Y_th, streamFunction, 
+plt.contourf(X_th, Y_th, streamFunction, 
             levels=levels_stream, cmap='viridis'
             )
 plt.colorbar()
