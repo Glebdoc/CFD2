@@ -118,6 +118,17 @@ def gen_plots():
     # plt.show()
     plt.close()
 
+    plt.matshow(H2t0.todense(),cmap = 'plasma')
+    # plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines
+    plt.title(r"$\mathbb{H}^{2 \tilde{0}}$")
+    plt.hlines(y=np.arange(0, Ht02.shape[1])+0.5, xmin=np.full(Ht02.shape[1], 0)-0.5, xmax=np.full(Ht02.shape[1], Ht02.shape[1])-0.5, color="black",linewidth=0.4)
+    plt.vlines(x=np.arange(0, Ht02.shape[1])+0.5, ymin=np.full(Ht02.shape[1], 0)-0.5, ymax=np.full(Ht02.shape[1], Ht02.shape[1])-0.5, color="black",linewidth=0.4)
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig(f"images/hodge/H2t0_N_{N}.pdf")
+    # plt.show()
+    plt.close()
+
 
     plt.matshow(H1t1.todense(),cmap = 'plasma')
     # plt.grid(True, which='both', linestyle='-', color='k', linewidth=1)  # Add gridlines

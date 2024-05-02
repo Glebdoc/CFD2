@@ -24,7 +24,7 @@ mone = -1
 
 L = 1.0
 Re = float(1000)    # Reynolds number 
-N = 16  		# mesh cells in x- and y-direction
+N = 3 		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -49,10 +49,22 @@ for i in range(N+1):
         
 th_min = min(th)
 h_min = min(h)
-h_min = min(h_min,th_min)                   # determination smallest mesh size
+h_min = min(h_min,th_min)  
+dt = min(h_min,0.5*Re*h_min**2)                 # determination smallest mesh size
+print("min dt found:", dt)
+multiplier = 1
+if h_min < 0.5*Re*h_min**2:
+    print("advection dominant dt")
 
-dt = min(h_min,0.5*Re*h_min**2)             # dt for stable integration
+    dt = h_min * multiplier
+else:
+    print("diffusion dominant dominant dt")
+    dt = multiplier * 0.5*Re*h_min**2   # dt for stable integration
 
+
+CFL_advection = 1 * dt/h_min
+print("CFL:", CFL_advection)
+print("dt used:", dt)
 #
 #  Note that the time step is a bit conservative so it may be useful to see
 #  if the time step can be slightly increased. This will speed up the
@@ -86,7 +98,6 @@ u_norm = np.concatenate((LB, RB, BB, TB), axis=0)
 # Insert the normal boundary conditions and split of the vector u_norm
 u_norm = tE21_norm @ u_norm
 u_norm = u_norm[:,np.newaxis]
-print('u_norm.shape', u_norm.shape)
 
 
 E10 = -tE21.transpose()
@@ -101,12 +112,11 @@ LB = V_wall_left*np.ones(N+1) * h
 RB = V_wall_right*np.ones(N+1) * h
 BB = U_wall_bot*np.ones(N+1) * h
 TB = U_wall_top*np.ones(N+1) * h
-print(TB)
+
 u_pres = np.concatenate((LB, RB, BB, TB), axis=0)
 
 u_pres = (E21_norm @ u_pres)[:,np.newaxis]
 
-print('u_pres.shape', u_pres.shape) 
 
 #  Set up the Hodge matrices Ht11 and H1t1
 H1t1, Ht11= hod.get_Ht11(th, h, N)
@@ -140,7 +150,7 @@ residual_step_hist = [step]
 maxdiv_list = [maxdiv]
 diff_list = [diff]
 
-
+print_status = True
 while (diff>tol):
     
     xi = Ht02@(E21@u + u_pres)
@@ -178,21 +188,22 @@ while (diff>tol):
     # check whether you satsify conservation of mass. The largest rate at whci 
     # mass is created ot destroyed is denoted my 'maxdiv'. This number should
     # be close to machine precision.
-    
-    if (step % 500) == 0:
+
+    if (step % 1000 == 0):
         maxdiv = abs(np.max(DIV@u+u_norm))
         diff = abs(np.max(u-uold))
         
-        print("Step at:", step)
-        print("-------")
-        print("maxdiv : ",maxdiv)
-        print("diff   : ", diff)
-        print()
+        if print_status:
+            print("Step at:", step)
+            print("-------")
+            print("maxdiv : ",maxdiv)
+            print("diff   : ", diff)
+            print()
 
         residual_step_hist.append(step)
         maxdiv_list.append(maxdiv)
         diff_list.append(diff)
-       
+
     step += 1
 
     #if step % 100==0: print("step at:",step)
@@ -205,11 +216,11 @@ while (diff>tol):
 
 
 save_config = {"dt": dt,
-               "steps": step,
-               "Re": Re,
-               "N": N,
-               "tol": tol,
-               "bcs": {"U_wall_top":  U_wall_top,
+            "steps": step,
+            "Re": Re,
+            "N": N,
+            "tol": tol,
+            "bcs": {"U_wall_top":  U_wall_top,
                         "U_wall_bot": U_wall_bot,
                         "U_wall_left": U_wall_left,
                         "U_wall_right" : U_wall_right,
@@ -226,10 +237,16 @@ save_config = {"dt": dt,
                 "th_min" : th_min,             
             }
 
-np.save(f'data/pressure_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy', p)
-np.save(f'data/velocity_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy', u)
+# np.save(f'data/pressure_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy', p)
+# np.save(f'data/velocity_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.npy', u)
 
-with open(f"data/config_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.json", "w") as outfile: 
+# with open(f"data/config_N_{N}_Re{Re:.1E}_tol_{tol:.1E}.json", "w") as outfile: 
+#     json.dump(save_config, outfile)
+
+np.save(f'dt_experimenting/pressure_Re{Re:.1E}_dt{dt:.2E}.npy', p)
+np.save(f'dt_experimenting/velocity_Re{Re:.1E}_dt{dt:.2E}.npy', u)
+
+with open(f"dt_experimenting/config_Re{Re:.1E}_dt{dt:.2E}.json", "w") as outfile: 
     json.dump(save_config, outfile)
 
 
@@ -250,11 +267,11 @@ def get_pressure(p, N):
 
 # print("Vorticity shape", xi.shape)
 
-# p_inner = get_pressure(p, N)
+p_inner = get_pressure(p, N)
 # print("Pressure inner:", p_inner)
-# plt.imshow(p_inner)
-# plt.colorbar()
-# plt.show()
+plt.imshow(p_inner)
+plt.colorbar()
+plt.show()
 
 
                     
@@ -299,7 +316,6 @@ ver_fluxes = fluxes[int(len(fluxes)/2):]
 # print("test_hor", test_hor)
 # test_ver = np.arange(0, len(ver_fluxes))
 # print("test_ver", test_ver)
-
 
 
 for j in range(N+1):
