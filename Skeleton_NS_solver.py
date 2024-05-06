@@ -18,13 +18,13 @@ import json
 
 # Determine a proper value for the tol which determines when the program terminates
 
-tol = 1e-7
+tol = 1e-8
 one = 1
 mone = -1
 
 L = 1.0
-Re = float(1000)    # Reynolds number 
-N = 3 		# mesh cells in x- and y-direction
+Re = float(10000)    # Reynolds number 
+N = 64 		# mesh cells in x- and y-direction
 
 u = np.zeros([2*N*(N+1),1])
 p = np.zeros([N*N+4*N,1])
@@ -52,7 +52,8 @@ h_min = min(h)
 h_min = min(h_min,th_min)  
 dt = min(h_min,0.5*Re*h_min**2)                 # determination smallest mesh size
 print("min dt found:", dt)
-multiplier = 1
+
+multiplier = 5.5
 if h_min < 0.5*Re*h_min**2:
     print("advection dominant dt")
 
@@ -149,8 +150,25 @@ residual_step_hist = [step]
 
 maxdiv_list = [maxdiv]
 diff_list = [diff]
+coord_stack_th = np.cumsum(np.insert(th,0,0))
+X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th, indexing='xy')
 
 print_status = True
+
+fg = plt.figure()
+ax = fg.gca()
+
+plt.ion()
+u_pres_vort_disp = Ht02 @ u_pres
+xi_disp = (Ht02 @ E21 @ u + u_pres_vort_disp).flatten()
+xi_grid_disp = np.reshape(xi_disp, (N+1, N+1), order='C')
+levels_vorticity = [-3., -2., -1., -0.5, 0., 0.5, 1., 2., 3., 4., 5.]
+levels_vorticity.sort()
+plot_w = ax.pcolormesh(X_th, Y_th, xi_grid_disp , vmin=-4, vmax = 4, cmap = 'plasma')
+# plot_w = ax.contourf(X_th, Y_th, xi_grid_disp, levels=levels_vorticity)
+fg.colorbar(plot_w)
+ax.axis("scaled")
+
 while (diff>tol):
     
     xi = Ht02@(E21@u + u_pres)
@@ -189,7 +207,7 @@ while (diff>tol):
     # mass is created ot destroyed is denoted my 'maxdiv'. This number should
     # be close to machine precision.
 
-    if (step % 1000 == 0):
+    if (step % 250 == 0):
         maxdiv = abs(np.max(DIV@u+u_norm))
         diff = abs(np.max(u-uold))
         
@@ -199,6 +217,15 @@ while (diff>tol):
             print("maxdiv : ",maxdiv)
             print("diff   : ", diff)
             print()
+
+            xi_disp = (Ht02 @ E21 @ u + u_pres_vort_disp).flatten()
+            
+            xi_grid_disp = np.reshape(xi_disp, (N+1, N+1), order='C')
+            plot_w.set_array(xi_grid_disp)
+            # ax.pcolormesh(X_th, Y_th, xi_grid, vmin=-2, vmax = 2)
+            # fg.gca().collections.remove(ax)
+            # plot_w = ax.contourf(X_th, Y_th, xi_grid_disp, levels=levels_vorticity)
+            plt.draw(), plt.pause(1e-2)
 
         residual_step_hist.append(step)
         maxdiv_list.append(maxdiv)
@@ -289,7 +316,7 @@ X_th, Y_th = np.meshgrid(coord_stack_th,coord_stack_th, indexing='xy')
 xi_grid = np.reshape(xi, (N+1, N+1), order='C')
 levels_vorticity = [-3., -2., -1., -0.5, 0., 0.5, 1., 2., 3., 4., 5.]
 levels_vorticity.sort()
-plt.contourf(X_th, Y_th, xi_grid, levels=levels_vorticity)
+plt.contour(X_th, Y_th, xi_grid, levels=levels_vorticity)
 plt.colorbar()
 plt.axis("scaled")
 plt.show()

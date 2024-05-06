@@ -104,12 +104,12 @@ def compute_dual_E21(N):
     matrix, matrix_extra = move(E21, columns_to_remove, nSurfaces)
     return matrix.tocsc(), matrix_extra.tocsc()
 
-tE21, tE21_extra = computetE21(N)
-E21, E21_extra = compute_dual_E21(N)
+# tE21, tE21_extra = computetE21(N)
+# E21, E21_extra = compute_dual_E21(N)
 
-E10 = -tE21.transpose()
-tE10 = E21.transpose()
-print((tE21@tE10).todense())
+# E10 = -tE21.transpose()
+# tE10 = E21.transpose()
+# print((tE21@tE10).todense())
 
 def plotMatrix(matrix):
     num_rows, num_cols = matrix.shape
@@ -120,7 +120,7 @@ def plotMatrix(matrix):
     plt.colorbar()
     plt.show()
 
-plotMatrix(E21)
+# plotMatrix(E21)
 # tE21, tE21_extra = computetE21(N) 
 # print(tE21.shape)
 # E21, E21_extra = compute_dual_E21(N)
